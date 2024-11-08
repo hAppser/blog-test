@@ -9,6 +9,12 @@ async function bootstrap() {
   app.useGlobalPipes(globalValidationPipe);
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  app.enableCors({
+    origin: ["http://localhost:3000"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle("Blog API")
     .setDescription("API documentation for the Blog application")
