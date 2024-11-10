@@ -13,7 +13,10 @@ export default function PostCard({ post }: Props) {
         <Image
           src={post.featuredImage}
           alt={post.title}
-          className="w-full h-48 object-cover"
+          width={640}
+          height={360}
+          className="w-full h-48 object-cover rounded-lg"
+          layout="intrinsic"
         />
       )}
 

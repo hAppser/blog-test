@@ -1,8 +1,8 @@
 export interface Post {
-  _id: string;
+  _id?: string;
   title: string;
   featuredImage?: string | null;
-  mainImage?: string;
+  mainImage?: string | null;
   shortDescription: string;
   articleContent: string;
 }
