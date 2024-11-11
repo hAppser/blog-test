@@ -98,6 +98,38 @@ export class PostController {
     return this.postService.removePost(id);
   }
 
+  @Post("bulk-delete")
+  @ApiOperation({ summary: "Remove several posts by IDs" })
+  @ApiBody({
+    description: "Array of Posts ID",
+    type: [String],
+    examples: {
+      "application/json": {
+        value: ["60d21b4667d0d8992e610c85", "60d21b4667d0d8992e610c86"],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Count of deleted posts",
+    schema: {
+      type: "object",
+      properties: {
+        deletedCount: {
+          type: "number",
+          example: 3,
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: "Post with the given ID not found",
+  })
+  @ApiNotFoundResponse({ description: "Post with the given ID not found" })
+  async deleteMany(@Body("ids") ids: string[]) {
+    return this.postService.bulkRemovePosts(ids);
+  }
+
   //ToDo bonus
   /* @Put("bulk-update")
   @ApiOperation({ summary: "Update multiple posts by ID" })
@@ -126,36 +158,5 @@ export class PostController {
   ): Promise<{ matchedCount: number; modifiedCount: number }> {
     return this.postService.updateManyPosts(ids, updateData);
   }
-
-  @Delete("bulk-delete")
-  @ApiOperation({ summary: "Remove several posts by IDs" })
-  @ApiBody({
-    description: "Array of Posts ID",
-    type: [String],
-    examples: {
-      "application/json": {
-        value: ["60d21b4667d0d8992e610c85", "60d21b4667d0d8992e610c86"],
-      },
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Count of deleted posts",
-    schema: {
-      type: "object",
-      properties: {
-        deletedCount: {
-          type: "number",
-          example: 3,
-        },
-      },
-    },
-  })
-  @ApiNotFoundResponse({
-    description: "Post with the given ID not found",
-  })
-  @ApiNotFoundResponse({ description: "Post with the given ID not found" })
-  async deleteMany() {
-    return this.postService.removeManyPosts([]);
-  } */
+  */
 }

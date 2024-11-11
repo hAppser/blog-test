@@ -15,11 +15,7 @@ export default function PostPage() {
   const router = useRouter();
 
   const { data: post, isLoading, error } = usePostQuery(id as string);
-  const {
-    mutate: deletePost,
-    isPending: isDeleting,
-    error: deleteError,
-  } = useDeletePostMutation();
+  const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation();
 
   const [menuOpen, setMenuOpen] = useState(false);
 

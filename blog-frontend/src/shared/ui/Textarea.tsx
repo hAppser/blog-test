@@ -11,7 +11,7 @@ export const Textarea: React.FC<InputFieldProps> = ({
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="mt-1 block w-full h-24 border border-gray-300 rounded-md p-2 dark:bg-gray-900 text-black dark:text-white"
+      className="mt-1 block w-full h-24 border resize-none border-gray-300 rounded-md p-2 dark:bg-gray-900 text-black dark:text-white"
     />
     {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
   </div>

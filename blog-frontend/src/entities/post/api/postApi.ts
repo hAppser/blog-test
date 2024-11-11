@@ -30,3 +30,13 @@ export const deletePost = async (id: string) => {
   const response = await apiClient.delete(`/posts/${id}`);
   return response.data;
 };
+
+export const deletBulkPosts = async (postIds: string[]) => {
+  await apiClient.post(`/posts/bulk-delete`, { ids: postIds });
+};
+
+export const updateBulkPosts = async (
+  updates: { id: string; title: string; description: string }[]
+) => {
+  return apiClient.put("/posts/bulk-edit", updates);
+};

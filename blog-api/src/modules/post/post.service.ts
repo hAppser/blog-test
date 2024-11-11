@@ -265,17 +265,13 @@ export class PostService {
     }
   }
 
-  async removeManyPosts(ids: string[]): Promise<{ deletedCount: number }> {
+     */
+
+  async bulkRemovePosts(ids: string[]): Promise<{ deletedCount: number }> {
     try {
       const validIds = ids.filter((id) => Types.ObjectId.isValid(id));
-
-      if (validIds.length === 0) {
-        throw new BadRequestException(
-          "No valid ObjectIds provided for deletion"
-        );
-      }
       const result = await this.postModel
-        .deleteMany({ id: { $in: validIds } })
+        .deleteMany({ _id: { $in: validIds } })
         .exec();
 
       if (result.deletedCount === 0) {
@@ -286,5 +282,5 @@ export class PostService {
     } catch (error) {
       throw new BadRequestException("Failed to delete posts");
     }
-  } */
+  }
 }

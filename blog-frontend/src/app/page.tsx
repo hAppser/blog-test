@@ -11,11 +11,9 @@ export default function HomePage() {
   const limit = 5;
 
   const { data, isLoading, error } = usePostsQuery({ page, limit });
-
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading posts</div>;
-
-  const { posts, total } = data;
+  const { posts = [], total } = data;
   const totalPages = Math.ceil(total / limit);
 
   const handlePageChange = (newPage: number) => {
@@ -38,12 +36,13 @@ export default function HomePage() {
           <PostCard key={post["_id"]} post={post} />
         ))}
       </div>
-
-      <Pagination
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      {posts.length > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages || 1}
+          onPageChange={handlePageChange}
+        />
+      )}
     </div>
   );
 }
