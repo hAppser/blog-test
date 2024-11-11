@@ -6,6 +6,7 @@ import {
   Put,
   Param,
   Delete,
+  Query,
 } from "@nestjs/common";
 import { PostService } from "./post.service";
 import { CreatePostDto } from "./dto/create-post.dto";
@@ -42,8 +43,11 @@ export class PostController {
   @ApiOperation({ summary: "Get all posts" })
   @ApiResponse({ status: 200, description: "Returns all posts" })
   @ApiBadRequestResponse({ description: "Failed to retrieve posts" })
-  findAllPosts() {
-    return this.postService.findAllPosts();
+  async findAllPosts(
+    @Query("page") page: number = 1,
+    @Query("limit") limit: number = 10
+  ) {
+    return this.postService.findAllPosts(page, limit);
   }
 
   @Get(":id")

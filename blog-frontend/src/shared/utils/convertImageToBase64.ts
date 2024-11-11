@@ -1,10 +1,7 @@
-export const convertImageToBase64 = (
-  file: File,
-  setImageBase64: React.Dispatch<React.SetStateAction<string | null>>
-) => {
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    setImageBase64(reader.result as string);
-  };
-  reader.readAsDataURL(file);
-};
+export const convertFileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });

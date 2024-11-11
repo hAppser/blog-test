@@ -8,10 +8,18 @@ import {
 } from "./postApi";
 import { Post } from "../model/post.types";
 
-export const usePostsQuery = () => {
+export const usePostsQuery = ({
+  page,
+  limit,
+}: {
+  page?: number;
+  limit?: number;
+}) => {
   return useQuery({
-    queryKey: ["posts"],
-    queryFn: fetchPosts,
+    queryKey: ["posts", page, limit],
+    queryFn: ({ queryKey }) => {
+      return fetchPosts({ page, limit });
+    },
   });
 };
 

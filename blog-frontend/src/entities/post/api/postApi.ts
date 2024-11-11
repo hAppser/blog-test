@@ -1,8 +1,13 @@
 import apiClient from "@/shared/api/apiClient";
 import { Post } from "../model/post.types";
 
-export const fetchPosts = async () => {
-  const response = await apiClient.get("/posts");
+export const fetchPosts = async ({ page = 1, limit = 10 }) => {
+  const response = await apiClient.get("/posts", {
+    params: {
+      page,
+      limit,
+    },
+  });
   return response.data;
 };
 
@@ -13,7 +18,6 @@ export const fetchPostById = async (id: string) => {
 
 export const createPost = async (postData: Post) => {
   const response = await apiClient.post("/posts", postData);
-  console.log(postData);
   return response.data;
 };
 

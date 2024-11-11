@@ -7,7 +7,7 @@ import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
 import { InjectModel } from "@nestjs/mongoose";
 import { Post, ImageDocumet } from "./interfaces/post.interface";
-import { Model, Types } from "mongoose";
+import { ClientSession, Model, Types } from "mongoose";
 
 @Injectable()
 export class PostService {
@@ -39,7 +39,11 @@ export class PostService {
     }
   }
 
-  private createImages(postData: CreatePostDto, postId: string, session: any) {
+  private createImages(
+    postData: CreatePostDto | UpdatePostDto,
+    postId: string,
+    session: ClientSession
+  ) {
     const images = [];
     if (postData.featuredImage) {
       images.push(
@@ -60,7 +64,6 @@ export class PostService {
         }).save({ session })
       );
     }
-
     return images;
   }
 
@@ -68,9 +71,17 @@ export class PostService {
     return this.imageModel.findOne({ postId, type }).exec();
   }
 
-  async findAllPosts(): Promise<Post[]> {
+  async findAllPosts(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ posts: Post[]; total: number }> {
     try {
-      const posts = await this.postModel.find().exec();
+      const skip = (page - 1) * limit;
+
+      const total = await this.postModel.countDocuments();
+
+      const posts = await this.postModel.find().skip(skip).limit(limit).exec();
+
       if (!posts || posts.length === 0) {
         throw new BadRequestException("No posts found");
       }
@@ -81,7 +92,6 @@ export class PostService {
             post.id,
             "featured"
           );
-
           const mainImage = await this.findImageByPostIdAndType(
             post.id,
             "main"
@@ -95,7 +105,10 @@ export class PostService {
         })
       );
 
-      return postsWithImages;
+      return {
+        posts: postsWithImages,
+        total,
+      };
     } catch (error) {
       throw new BadRequestException("Failed to retrieve posts");
     }
@@ -113,8 +126,8 @@ export class PostService {
 
       return {
         ...post.toObject(),
-        featuredImage: featuredImage.data,
-        mainImage: mainImage.data,
+        featuredImage: featuredImage?.data || null,
+        mainImage: mainImage?.data || null,
       };
     } catch (error) {
       throw new BadRequestException("Failed to retrieve post");
@@ -145,13 +158,79 @@ export class PostService {
   }
 
   async updatePost(id: string, postData: UpdatePostDto): Promise<Post> {
-    const updatedPost = await this.postModel
-      .findByIdAndUpdate(id, postData, { new: true })
-      .exec();
-    if (!updatedPost) {
-      throw new NotFoundException(`Post with ID ${id} not found`);
+    const session = await this.postModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      const existingPost = await this.postModel.findById(id).exec();
+      if (!existingPost) {
+        throw new NotFoundException(`Post with ID ${id} not found`);
+      }
+
+      const oldImages = {
+        mainImage: existingPost.mainImage,
+        featuredImage: existingPost.featuredImage,
+      };
+
+      const updatedPost = await this.postModel
+        .findByIdAndUpdate(
+          id,
+          {
+            title: postData.title,
+            shortDescription: postData.shortDescription,
+            articleContent: postData.articleContent,
+          },
+          { new: true, session }
+        )
+        .exec();
+
+      await this.replaceOldImages(oldImages, postData, id);
+
+      const imagesToSave = this.createImages(postData, updatedPost.id, session);
+
+      await Promise.all(imagesToSave);
+
+      await session.commitTransaction();
+      return updatedPost;
+    } catch (error) {
+      await session.abortTransaction();
+      throw new BadRequestException("Failed to update post with images");
+    } finally {
+      session.endSession();
     }
-    return updatedPost;
+  }
+
+  async replaceOldImages(
+    oldImages: { mainImage?: string; featuredImage?: string },
+    postData: UpdatePostDto,
+    postId: string
+  ) {
+    if (postData?.mainImage !== oldImages.mainImage) {
+      await this.imageModel.updateOne(
+        { postId, type: "main" },
+        { $set: { data: postData.mainImage } }
+      );
+    } else if (!postData.mainImage && oldImages.mainImage) {
+      await this.postModel.updateOne(
+        { postId, type: "main" },
+        { $unset: { mainImage: 1 } }
+      );
+    }
+
+    if (
+      postData.featuredImage &&
+      postData.featuredImage !== oldImages.featuredImage
+    ) {
+      await this.postModel.updateOne(
+        { postId, type: "featured" },
+        { $set: { featuredImage: postData.featuredImage } }
+      );
+    } else if (!postData.featuredImage && oldImages.featuredImage) {
+      await this.postModel.updateOne(
+        { postId, type: "featured" },
+        { $unset: { featuredImage: 1 } }
+      );
+    }
   }
 
   async removePost(id: string): Promise<Post> {
