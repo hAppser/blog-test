@@ -240,32 +240,29 @@ export class PostService {
     }
     return deletedPost;
   }
-  // ToDo Bonus
-  /*async updateManyPosts(
-    ids: string[],
-    updateData: Partial<Post>
-  ): Promise<{ matchedCount: number; modifiedCount: number }> {
+
+  async bulkUpdatePosts(
+    updates: { id: string; title?: string; description?: string }[]
+  ): Promise<Post[]> {
     try {
-      const result = await this.postModel
-        .updateMany(
-          { _id: { $in: ids } },
-          { $set: updateData },
-          { multi: true }
-        )
-        .exec();
-      if (result.matchedCount === 0) {
+      let matchedCount = 0;
+
+      const result = Promise.all(
+        updates.map(async (update) => {
+          const { id, ...updateData } = update;
+          return await this.updatePost(update.id, update);
+        })
+      );
+
+      if (matchedCount === 0) {
         throw new NotFoundException("No posts found to update");
       }
-      return {
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-      };
+
+      return result;
     } catch (error) {
       throw new BadRequestException("Failed to update posts");
     }
   }
-
-     */
 
   async bulkRemovePosts(ids: string[]): Promise<{ deletedCount: number }> {
     try {

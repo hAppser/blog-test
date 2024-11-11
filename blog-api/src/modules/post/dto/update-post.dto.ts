@@ -4,6 +4,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsOptional } from "class-validator";
 
 export class UpdatePostDto extends PartialType(CreatePostDto) {
+  @ApiProperty({ description: "The title of the post", required: true })
+  @IsString()
+  id: string;
+
   @ApiProperty({ description: "The title of the post", required: false })
   @IsString()
   @IsOptional()

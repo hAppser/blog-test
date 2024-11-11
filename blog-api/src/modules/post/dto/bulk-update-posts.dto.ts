@@ -4,10 +4,7 @@ import { UpdatePostDto } from "./update-post.dto";
 
 export class BulkUpdatePostsDto {
   @IsArray()
-  @IsNotEmpty({ each: true })
-  ids: string[];
-
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => UpdatePostDto)
-  updateData: UpdatePostDto;
+  updates: UpdatePostDto[];
 }

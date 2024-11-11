@@ -130,8 +130,7 @@ export class PostController {
     return this.postService.bulkRemovePosts(ids);
   }
 
-  //ToDo bonus
-  /* @Put("bulk-update")
+  @Put("bulk-update")
   @ApiOperation({ summary: "Update multiple posts by ID" })
   @ApiBody({
     description: "Array of post IDs and data to update",
@@ -153,10 +152,9 @@ export class PostController {
   })
   @ApiNotFoundResponse({ description: "No posts found to update" })
   async updateManyPosts(
-    @Body("ids") ids: string[],
-    @Body("updateData") updateData: UpdatePostDto
-  ): Promise<{ matchedCount: number; modifiedCount: number }> {
-    return this.postService.updateManyPosts(ids, updateData);
+    @Body()
+    updates: { id: string; title?: string; description?: string }[]
+  ) {
+    return this.postService.bulkUpdatePosts(updates);
   }
-  */
 }
