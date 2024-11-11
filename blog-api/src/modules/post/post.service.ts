@@ -82,10 +82,6 @@ export class PostService {
 
       const posts = await this.postModel.find().skip(skip).limit(limit).exec();
 
-      if (!posts || posts.length === 0) {
-        throw new BadRequestException("No posts found");
-      }
-
       const postsWithImages = await Promise.all(
         posts.map(async (post) => {
           const featuredImage = await this.findImageByPostIdAndType(
@@ -167,11 +163,6 @@ export class PostService {
         throw new NotFoundException(`Post with ID ${id} not found`);
       }
 
-      const oldImages = {
-        mainImage: existingPost.mainImage,
-        featuredImage: existingPost.featuredImage,
-      };
-
       const updatedPost = await this.postModel
         .findByIdAndUpdate(
           id,
@@ -184,11 +175,7 @@ export class PostService {
         )
         .exec();
 
-      await this.replaceOldImages(oldImages, postData, id);
-
-      const imagesToSave = this.createImages(postData, updatedPost.id, session);
-
-      await Promise.all(imagesToSave);
+      await this.replaceOldImages(postData, id);
 
       await session.commitTransaction();
       return updatedPost;
@@ -200,72 +187,36 @@ export class PostService {
     }
   }
 
-  async replaceOldImages(
-    oldImages: { mainImage?: string; featuredImage?: string },
-    postData: UpdatePostDto,
-    postId: string
-  ) {
-    if (postData?.mainImage !== oldImages.mainImage) {
-      await this.imageModel.updateOne(
-        { postId, type: "main" },
-        { $set: { data: postData.mainImage } }
-      );
-    } else if (!postData.mainImage && oldImages.mainImage) {
-      await this.postModel.updateOne(
-        { postId, type: "main" },
-        { $unset: { mainImage: 1 } }
-      );
-    }
+  async replaceOldImages(postData: UpdatePostDto, postId: string) {
+    const upsertImage = async (type: string, image: string | undefined) => {
+      if (image) {
+        const existingImage = await this.imageModel.findOne({ postId, type });
+        if (existingImage) {
+          await this.imageModel.updateOne(
+            { postId, type },
+            { $set: { data: image } }
+          );
+        } else {
+          await this.imageModel.create({ postId, type, data: image });
+        }
+      } else {
+        await this.imageModel.deleteOne({ postId, type });
+      }
+    };
 
-    if (
-      postData.featuredImage &&
-      postData.featuredImage !== oldImages.featuredImage
-    ) {
-      await this.postModel.updateOne(
-        { postId, type: "featured" },
-        { $set: { featuredImage: postData.featuredImage } }
-      );
-    } else if (!postData.featuredImage && oldImages.featuredImage) {
-      await this.postModel.updateOne(
-        { postId, type: "featured" },
-        { $unset: { featuredImage: 1 } }
-      );
-    }
+    await upsertImage("main", postData.mainImage);
+
+    await upsertImage("featured", postData.featuredImage);
   }
 
   async removePost(id: string): Promise<Post> {
     const deletedPost = await this.postModel.findByIdAndDelete(id).exec();
+    await this.imageModel.deleteMany({ postId: id });
     if (!deletedPost) {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
     return deletedPost;
   }
-  // ToDo Bonus
-  /*async updateManyPosts(
-    ids: string[],
-    updateData: Partial<Post>
-  ): Promise<{ matchedCount: number; modifiedCount: number }> {
-    try {
-      const result = await this.postModel
-        .updateMany(
-          { _id: { $in: ids } },
-          { $set: updateData },
-          { multi: true }
-        )
-        .exec();
-      if (result.matchedCount === 0) {
-        throw new NotFoundException("No posts found to update");
-      }
-      return {
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-      };
-    } catch (error) {
-      throw new BadRequestException("Failed to update posts");
-    }
-  }
-
-     */
 
   async bulkRemovePosts(ids: string[]): Promise<{ deletedCount: number }> {
     try {
@@ -273,14 +224,12 @@ export class PostService {
       const result = await this.postModel
         .deleteMany({ _id: { $in: validIds } })
         .exec();
-
+      await this.imageModel.deleteMany({ postId: { $in: validIds } }).exec();
       if (result.deletedCount === 0) {
         throw new NotFoundException("No posts found to delete");
       }
 
       return { deletedCount: result.deletedCount };
-    } catch (error) {
-      throw new BadRequestException("Failed to delete posts");
-    }
+    } catch (error) {}
   }
 }

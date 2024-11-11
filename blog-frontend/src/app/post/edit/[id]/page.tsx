@@ -3,18 +3,19 @@
 import React, { useState, useEffect } from "react";
 import { usePostQuery } from "@/entities/post/api/postQueries";
 import { useUpdatePostMutation } from "@/entities/post/api/postQueries";
-import { CKEditorField } from "@/shared/ui/CKEditorField";
+
+import { DraftEditorField } from "@/shared/ui/DraftEditorField";
 import { Textarea } from "@/shared/ui/Textarea";
 import { Input } from "@/shared/ui/Input";
 import ImageUpload from "@/shared/ui/ImageUpload";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function EditPostPage() {
   const { id } = useParams();
   const router = useRouter();
   const { data: post, isLoading, error } = usePostQuery(id as string);
   const { mutate: updatePost, isPending } = useUpdatePostMutation();
+  const [isClient, setIsClient] = useState(false);
 
   const [title, setTitle] = useState(post?.title || "");
   const [shortDescription, setShortDescription] = useState(
@@ -26,9 +27,9 @@ export default function EditPostPage() {
   const [mainImageBase64, setMainImageBase64] = useState<string | null>(
     post?.mainImage || null
   );
-  const [secondaryImageBase64, setFeaturedImageBase64] = useState<
-    string | null
-  >(post?.featuredImage || null);
+  const [featuredImageBase64, setFeaturedImageBase64] = useState<string | null>(
+    post?.featuredImage || null
+  );
   const [errors, setErrors] = useState<{
     title?: string;
     description?: string;
@@ -44,6 +45,10 @@ export default function EditPostPage() {
       setFeaturedImageBase64(post.featuredImage);
     }
   }, [post]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +75,7 @@ export default function EditPostPage() {
         shortDescription,
         articleContent,
         mainImage: mainImageBase64,
-        featuredImage: secondaryImageBase64,
+        featuredImage: featuredImageBase64,
       },
     });
     router.push("/");
@@ -98,17 +103,21 @@ export default function EditPostPage() {
         <ImageUpload
           label="Main Image"
           onImageUpload={(base64) => setMainImageBase64(base64)}
+          imageBase64={mainImageBase64}
         />
         <ImageUpload
           label="Featured Image"
           onImageUpload={(base64) => setFeaturedImageBase64(base64)}
+          imageBase64={featuredImageBase64}
         />
-        <CKEditorField
-          label="Content"
-          value={articleContent}
-          onChange={setArticleContent}
-          error={errors.content}
-        />
+        {isClient ? (
+          <DraftEditorField
+            label="Content"
+            value={articleContent}
+            onChange={setArticleContent}
+            error={errors.content}
+          />
+        ) : null}
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
@@ -119,11 +128,12 @@ export default function EditPostPage() {
       </form>
 
       <div className="mt-4">
-        <Link href="/" passHref>
-          <button className="bg-gray-500 text-white px-4 py-2 rounded">
-            Back to Home
-          </button>
-        </Link>
+        <button
+          onClick={() => router.back()}
+          className="bg-gray-500 text-white px-4 py-2 rounded"
+        >
+          Back
+        </button>
       </div>
     </div>
   );

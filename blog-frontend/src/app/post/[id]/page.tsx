@@ -16,7 +16,6 @@ export default function PostPage() {
 
   const { data: post, isLoading, error } = usePostQuery(id as string);
   const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation();
-
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (isLoading) return <div className="text-center">Loading...</div>;
@@ -55,10 +54,10 @@ export default function PostPage() {
 
       <div className="flex justify-between items-center mb-6">
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.back()}
           className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded"
         >
-          Back to Home
+          Back
         </button>
 
         <div className="relative">
@@ -118,7 +117,7 @@ export default function PostPage() {
         <h3 className="text-2xl font-semibold mb-4">Comments</h3>
         <div className="bg-gray-100 p-4 rounded-md shadow-sm">
           <p className="text-gray-600">
-            No comments yet. Be the first to comment!
+            No comments yet. Be the first to comment! (or not)
           </p>
         </div>
       </div>

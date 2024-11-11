@@ -4,12 +4,15 @@ import { Post } from "../model/post.types";
 
 type Props = {
   post: Post;
+  className?: string;
 };
 
-export default function PostCard({ post }: Props) {
+export default function PostCard({ post, className }: Props) {
   return (
-    <div className="border rounded-lg overflow-hidden shadow-lg flex flex-col h-full">
-      <div className="relative w-full h-56">
+    <div
+      className={`border rounded-lg overflow-hidden shadow-lg flex flex-col h-full ${className}`}
+    >
+      <div className="relative w-full min-h-32 h-full">
         <Image
           src={post?.featuredImage || "/placeholder.svg"}
           alt={post.title}

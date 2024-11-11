@@ -3,27 +3,20 @@ import { useState, useEffect } from "react";
 import {
   useDeleteBulkPostsMutation,
   usePostsQuery,
-  useBulkEditPostsMutation,
 } from "@/entities/post/api/postQueries";
 import { Post } from "@/entities/post/model/post.types";
 import Pagination from "@/shared/ui/Pagination";
 import { useRouter } from "next/navigation";
-import { Textarea } from "@/shared/ui/Textarea";
-import { Input } from "@/shared/ui/Input";
+import PostCard from "@/entities/post/ui/PostCard";
 
-export default function HomePage() {
+export default function PostManagePage() {
   const [page, setPage] = useState(1);
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
-  const [editData, setEditData] = useState<{
-    [key: string]: { title: string; shortDescription: string };
-  }>({});
   const limit = 5;
 
   const { data, isLoading, error } = usePostsQuery({ page, limit });
   const { mutate: deletePosts, isPending: isDeleting } =
     useDeleteBulkPostsMutation();
-  const { mutate: bulkEditPosts, isPending: isEditing } =
-    useBulkEditPostsMutation();
   const router = useRouter();
 
   useEffect(() => {
@@ -41,7 +34,6 @@ export default function HomePage() {
         };
       }
     });
-    setEditData(initialEditData);
   }, [selectedPosts, data]);
 
   if (isLoading) return <div>Loading...</div>;
@@ -71,47 +63,16 @@ export default function HomePage() {
     }
   };
 
-  const handleBulkEdit = async () => {
-    const updates = selectedPosts.map((postId) => ({
-      id: postId,
-      title: editData[postId]?.title,
-      description: editData[postId]?.shortDescription,
-    }));
-
-    try {
-      await bulkEditPosts(updates);
-      alert("Posts updated successfully!");
-      setSelectedPosts([]);
-    } catch (error) {
-      console.error("Error editing posts", error);
-    }
-  };
-
-  const handleEditChange = (
-    postId: string,
-    field: "title" | "shortDescription",
-    value: string
-  ) => {
-    setEditData((prevData) => ({
-      ...prevData,
-      [postId]: {
-        ...prevData[postId],
-        [field]: value,
-      },
-    }));
-  };
-
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Post Management</h1>
+    <div className="container mx-auto p-4 min-h-screen flex flex-col">
+      <h1 className="text-3xl font-bold mb-6 text-center">Post Management</h1>
 
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-center gap-4 mb-6">
         <button
-          onClick={handleBulkEdit}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          disabled={selectedPosts.length === 0 || isEditing}
+          onClick={() => router.back()}
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
         >
-          {isEditing ? "Editing..." : "Bulk Edit"}
+          Back
         </button>
         <button
           onClick={handleBulkDelete}
@@ -122,62 +83,33 @@ export default function HomePage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-6 flex-grow mb-10">
         {posts.map((post: Post & { _id: string }) => (
           <div
             key={post._id}
-            className="border p-4 rounded shadow-sm flex flex-col"
+            className="relative border rounded-lg shadow-lg p-6"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="absolute top-2 left-2">
               <input
                 type="checkbox"
-                checked={selectedPosts.includes(post?._id)}
-                onChange={() => handleSelectPost(post?._id)}
-                className="mr-2"
+                checked={selectedPosts.includes(post._id)}
+                onChange={() => handleSelectPost(post._id)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <h2 className="text-lg font-semibold">{post.title}</h2>
             </div>
-            <p className="text-sm text-gray-600">{post.shortDescription}</p>
-
-            {selectedPosts.includes(post._id) && (
-              <div className="mt-4">
-                <div className="mb-2">
-                  <Input
-                    label="Title"
-                    value={editData[post._id]?.title || ""}
-                    onChange={(e) => handleEditChange(post._id, "title", e)}
-                  />
-                </div>
-
-                <div className="mb-2">
-                  <Textarea
-                    label="Description"
-                    value={editData[post._id]?.shortDescription || ""}
-                    onChange={(e) =>
-                      handleEditChange(post._id, "shortDescription", e)
-                    }
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => router.push(`/post/${post._id}`)}
-                className="text-blue-500 hover:underline"
-              >
-                View
-              </button>
-            </div>
+            <PostCard post={post} className="border-none" />
           </div>
         ))}
       </div>
 
-      <Pagination
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
+      <div className="mt-auto pt-4">
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          className="gap-2 p-2 rounded-lg shadow-sm"
+        />
+      </div>
     </div>
   );
 }

@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCreatePostMutation } from "@/entities/post/api/postQueries";
-import { CKEditorField } from "@/shared/ui/CKEditorField";
+import { DraftEditorField } from "@/shared/ui/DraftEditorField";
 import { Textarea } from "@/shared/ui/Textarea";
 import { Input } from "@/shared/ui/Input";
 import ImageUpload from "@/shared/ui/ImageUpload";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function NewPostPage() {
+  const [isClient, setIsClient] = useState(false);
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [articleContent, setArticleContent] = useState("");
@@ -24,6 +24,10 @@ export default function NewPostPage() {
   }>({});
   const router = useRouter();
   const { mutate: createPost, isPending } = useCreatePostMutation();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +59,17 @@ export default function NewPostPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Create New Blog Post</h1>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => router.back()}
+          className="bg-gray-500 text-white px-4 py-2 rounded"
+        >
+          Back
+        </button>
+
+        <h1 className="text-3xl font-bold mb-4">Create New Blog Post</h1>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4 flex flex-col gap-1">
         <Input
           label="Title"
@@ -77,12 +91,14 @@ export default function NewPostPage() {
           label="Featured Image"
           onImageUpload={(base64) => setFeaturedImageBase64(base64)}
         />
-        <CKEditorField
-          label="Content"
-          value={articleContent}
-          onChange={setArticleContent}
-          error={errors.content}
-        />
+        {isClient ? (
+          <DraftEditorField
+            label="Content"
+            value={articleContent}
+            onChange={setArticleContent}
+            error={errors.content}
+          />
+        ) : null}
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
@@ -92,13 +108,7 @@ export default function NewPostPage() {
         </button>
       </form>
 
-      <div className="mt-4">
-        <Link href="/" passHref>
-          <button className="bg-gray-500 text-white px-4 py-2 rounded">
-            Back to Home
-          </button>
-        </Link>
-      </div>
+      <div className="mt-4"></div>
     </div>
   );
 }

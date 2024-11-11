@@ -5,6 +5,7 @@ import Image from "next/image";
 interface ImageUploadProps {
   onImageUpload: (file: string) => void;
   label: string;
+  imageBase64?: string | null;
   width?: number;
   height?: number;
 }
@@ -12,10 +13,11 @@ interface ImageUploadProps {
 const ImageUpload: React.FC<ImageUploadProps> = ({
   onImageUpload,
   label,
+  imageBase64,
   width = 400,
   height = 400,
 }) => {
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(imageBase64 || null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileUpload = async (file: File) => {
@@ -81,5 +83,4 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     </>
   );
 };
-
 export default ImageUpload;

@@ -19,28 +19,3 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
-
-.ck .ck-content {
-  height: 60vh;
-  min-height: 400px;
-  overflow-y: auto;
-  background-color: #fff;
-  border-radius: 0.375rem;
-  color: #000;
-}
-.ck.ck-editor__editable_inline {
-  padding: 0 1.5em !important;
-}
-
-@media (min-width: 1024px) {
-  .ck .ck-content {
-    height: 50vh;
-  }
-}
-
-@media (max-width: 600px) {
-  .ck .ck-content {
-    height: 40vh;
-    min-height: 300px;
-  }
-}

@@ -129,34 +129,4 @@ export class PostController {
   async deleteMany(@Body("ids") ids: string[]) {
     return this.postService.bulkRemovePosts(ids);
   }
-
-  //ToDo bonus
-  /* @Put("bulk-update")
-  @ApiOperation({ summary: "Update multiple posts by ID" })
-  @ApiBody({
-    description: "Array of post IDs and data to update",
-    type: BulkUpdatePostsDto,
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Number of posts updated",
-    schema: {
-      type: "object",
-      properties: {
-        matchedCount: { type: "number", example: 3 },
-        modifiedCount: { type: "number", example: 2 },
-      },
-    },
-  })
-  @ApiBadRequestResponse({
-    description: "Invalid or no valid ObjectIds provided",
-  })
-  @ApiNotFoundResponse({ description: "No posts found to update" })
-  async updateManyPosts(
-    @Body("ids") ids: string[],
-    @Body("updateData") updateData: UpdatePostDto
-  ): Promise<{ matchedCount: number; modifiedCount: number }> {
-    return this.postService.updateManyPosts(ids, updateData);
-  }
-  */
 }
