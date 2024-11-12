@@ -5,13 +5,21 @@ import {
   createPost,
   updatePost,
   deletePost,
+  deletBulkPosts,
+  updateBulkPosts,
 } from "./postApi";
 import { Post } from "../model/post.types";
 
-export const usePostsQuery = () => {
+export const usePostsQuery = ({
+  page,
+  limit,
+}: {
+  page?: number;
+  limit?: number;
+}) => {
   return useQuery({
-    queryKey: ["posts"],
-    queryFn: fetchPosts,
+    queryKey: ["posts", page, limit],
+    queryFn: () => fetchPosts({ page, limit }),
   });
 };
 
@@ -50,6 +58,28 @@ export const useDeletePostMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deletePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+};
+
+export const useDeleteBulkPostsMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => deletBulkPosts(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+};
+
+export const useBulkEditPostsMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateBulkPosts,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },

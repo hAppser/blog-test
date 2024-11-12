@@ -7,19 +7,9 @@ export const PostSchema = new Schema<Post>(
       type: String,
       required: true,
     },
-    featuredImage: {
-      type: String,
-      required: false,
-      default: null,
-    },
     shortDescription: {
       type: String,
       required: true,
-    },
-    mainImage: {
-      type: String,
-      required: false,
-      default: null,
     },
     articleContent: {
       type: String,
