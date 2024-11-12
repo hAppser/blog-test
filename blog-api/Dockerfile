@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY blog-api/package*.json ./
+COPY package*.json ./
 
 RUN npm ci
 
-COPY blog-api .
+COPY . .
 
 RUN npm run build
 
