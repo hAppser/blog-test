@@ -11,7 +11,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableCors({
-    origin: [process.env.FRONTEND_URL],
+    origin: ["http://localhost:3000"],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
   });
@@ -26,7 +26,7 @@ async function bootstrap() {
   SwaggerModule.setup("api", app, document);
   app.use(bodyParser.json({ limit: "50mb" }));
   app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.PORT || 3077);
 }
 
 bootstrap();
